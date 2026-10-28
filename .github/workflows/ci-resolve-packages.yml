@@ -1,0 +1,34 @@
+name: Unity CI - Resolve Packages
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  resolve-packages:
+    name: Resolve Unity Packages (pre-build)
+    # Use macOS by default because this step typically requires an installed
+    # Unity editor binary. Change to a self-hosted runner label if you run
+    # Unity on your own machines.
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Make resolve script executable
+        run: chmod +x .github/scripts/ci/resolve-packages.sh
+
+      - name: Resolve Unity packages
+        # Provide UNITY_BIN if Unity isn't installed in the default macOS Hub path
+        # Example (in repository secrets or workflow dispatch): UNITY_BIN=/Applications/Unity/Hub/Editor/6000.6.7f1/Unity.app/Contents/MacOS/Unity
+        env:
+          UNITY_BIN: ${{ env.UNITY_BIN }}
+        run: .github/scripts/ci/resolve-packages.sh
+
+      - name: Upload resolve log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unity-resolve-log
+          path: logs/unity-resolve.log

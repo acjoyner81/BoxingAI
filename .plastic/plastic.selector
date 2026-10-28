@@ -1,4 +1,0 @@
-repository "My project/boxing-game@2474785491194@cloud"
-  path "/"
-    br "/main"
-    co "/main"

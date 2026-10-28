@@ -1,0 +1,88 @@
+name: Unity CI - Resolve & Build
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  build:
+    name: Resolve packages and build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Restore Unity Library cache
+        uses: actions/cache@v4
+        with:
+          path: Library
+          key: ${{ runner.os }}-unity-library-${{ hashFiles('Packages/manifest.json', 'ProjectSettings/ProjectVersion.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-unity-library-
+
+      - name: Activate Unity license
+        uses: game-ci/unity-activate@v2
+        with:
+          unityLicense: ${{ secrets.UNITY_LICENSE }}
+
+      - name: Resolve Unity packages (call PackageResolver.ResolvePackages)
+        uses: game-ci/unity-builder@v4
+        with:
+          targetPlatform: StandaloneLinux64
+          buildMethod: PackageResolver.ResolvePackages
+          manualExit: 'false'
+
+      - name: Build StandaloneOSX
+        uses: game-ci/unity-builder@v4
+        with:
+          targetPlatform: StandaloneOSX
+          buildName: "BoxingAI-StandaloneOSX"
+          buildsPath: build/osx
+
+      - name: Upload macOS build
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: BoxingAI-StandaloneOSX
+          path: build/osx
+
+      - name: Build StandaloneWindows64
+        uses: game-ci/unity-builder@v4
+        with:
+          targetPlatform: StandaloneWindows64
+          buildName: "BoxingAI-StandaloneWindows64"
+          buildsPath: build/windows
+
+      - name: Upload Windows build
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: BoxingAI-StandaloneWindows64
+          path: build/windows
+
+      - name: Build StandaloneLinux64
+        uses: game-ci/unity-builder@v4
+        with:
+          targetPlatform: StandaloneLinux64
+          buildName: "BoxingAI-StandaloneLinux64"
+          buildsPath: build/linux
+
+      - name: Upload Linux build
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: BoxingAI-StandaloneLinux64
+          path: build/linux
+
+      - name: Save Unity Library cache
+        if: always()
+        uses: actions/cache@v4
+        with:
+          path: Library
+          key: ${{ runner.os }}-unity-library-${{ hashFiles('Packages/manifest.json', 'ProjectSettings/ProjectVersion.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-unity-library-
+
+      - name: Return Unity license
+        uses: game-ci/unity-return-license@v2
