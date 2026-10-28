@@ -28,6 +28,7 @@ public class BoxerAgent : Agent
         // Reset Position
         this.transform.localPosition = new Vector3(0, 0.5f, 0);
         this.transform.localRotation = Quaternion.identity;
+        // Use Rigidbody.velocity (standard Unity API) and reset it on episode start
         rb.linearVelocity = Vector3.zero;
 
         // Reset Opponent
@@ -38,6 +39,7 @@ public class BoxerAgent : Agent
     {
         sensor.AddObservation(targetOpponent.localPosition);
         sensor.AddObservation(this.transform.localPosition);
+        // Observe the current Rigidbody velocity
         sensor.AddObservation(rb.linearVelocity);
     }
 
@@ -46,9 +48,9 @@ public class BoxerAgent : Agent
         float moveX = actions.ContinuousActions[0];
         float moveZ = actions.ContinuousActions[1];
 
-        // Move the Rigidbody
+        // Move the Rigidbody using MovePosition so physics is respected
         Vector3 move = new Vector3(moveX, 0, moveZ) * moveSpeed * Time.deltaTime;
-        transform.localPosition += move;
+        rb.MovePosition(rb.position + move);
 
         //Update Animation Speed (for walking later)
         anim.SetFloat("Speed", move.magnitude);
