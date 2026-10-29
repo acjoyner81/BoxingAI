@@ -1,0 +1,14 @@
+Temp/
+Logs/
+results/
+UserSettings/
+.vs/
+.vscode/
+Assembly-CSharp-Editor.csproj
+Assembly-CSharp.csproj
+BoxingAI_recreated.slnx
+BoxingAI.slnx
+Library/
+mono_crash.mem.9673.1.blob
+ignore.conf
+.plastic/
