@@ -8,6 +8,8 @@ public class BoxerAgent : Agent
     [Header("Opponent & Ring Target")]
     public Transform targetOpponent;
     public BoxerAgent opponentBoxerAgent;
+    public Transform ringCenter;
+    public float ringRadius = 4.5f;
 
     [Header("Stats")]
     public float moveSpeed = 4.5f;
@@ -141,6 +143,28 @@ public class BoxerAgent : Agent
 
         // Process Combat Action
         HandleCombatAction(combatAction);
+
+        // Check Ring Boundary & Ring-Out Penalty
+        Vector3 centerPos = ringCenter != null ? ringCenter.position : (transform.parent != null ? transform.parent.position : Vector3.zero);
+        float distanceFromCenter = Vector3.Distance(new Vector3(transform.position.x, 0, transform.position.z), new Vector3(centerPos.x, 0, centerPos.z));
+
+        if (distanceFromCenter > ringRadius)
+        {
+            // Penalize stepping outside the ropes / ring-out
+            AddReward(-1.0f);
+            if (opponentBoxerAgent != null)
+            {
+                opponentBoxerAgent.AddReward(0.5f); // Reward opponent for forcing a ring-out
+                opponentBoxerAgent.EndEpisode();
+            }
+            EndEpisode();
+            return;
+        }
+        else if (distanceFromCenter > ringRadius * 0.8f)
+        {
+            // Warning rope penalty to encourage ring center control
+            AddReward(-0.002f);
+        }
 
         // Small step existence penalty to encourage decisive action
         AddReward(-0.0005f);
